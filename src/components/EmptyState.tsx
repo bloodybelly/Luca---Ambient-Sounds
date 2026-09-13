@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Play } from 'lucide-react';
+import { Volume2, Play } from 'lucide-react';
 import { SOUND_LIBRARY } from '../data/sounds';
 import { SoundIcon } from './SoundIcon';
 
@@ -18,14 +18,29 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onQuickStartSound, accen
       id="empty-atmosphere-state"
       className="w-full py-8 px-4 rounded-3xl bg-slate-900/40 border border-slate-800/80 backdrop-blur-md text-center flex flex-col items-center justify-center gap-3 transition-all duration-300"
     >
+      {/* Audio Logo */}
       <div
-        className="w-12 h-12 rounded-2xl flex items-center justify-center mb-1 shadow-inner"
+        id="empty-state-audio-logo"
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-1 shadow-lg relative group transition-transform hover:scale-105"
         style={{
-          backgroundColor: `${accentColor}18`,
+          backgroundColor: `${accentColor}22`,
           color: accentColor,
+          border: `1px solid ${accentColor}44`,
         }}
       >
-        <Sparkles className="w-6 h-6" />
+        <Volume2 className="w-7 h-7" />
+        <span
+          className="absolute -top-1 -right-1 flex h-3 w-3"
+        >
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ backgroundColor: accentColor }}
+          />
+          <span
+            className="relative inline-flex rounded-full h-3 w-3"
+            style={{ backgroundColor: accentColor }}
+          />
+        </span>
       </div>
 
       <div>

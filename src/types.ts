@@ -105,10 +105,18 @@ export type ThemeId =
   | 'arctic'
   | 'neon';
 
+export interface ThemeColorItem {
+  name: string;
+  hex: string;
+}
+
 export interface ThemeConfig {
   id: ThemeId;
-  name: string;
+  name: string; // Scenario Name (e.g. 'Cosmic Deep Space', 'Enchanted Rainforest')
+  scenario: string; // Short scenario subtitle
   description: string;
+  palette: ThemeColorItem[]; // Detailed color mixture
+  colorMix: string[]; // Fast array of colors for gradients & particles
   background: string;
   bgGradient: string;
   surface: string;

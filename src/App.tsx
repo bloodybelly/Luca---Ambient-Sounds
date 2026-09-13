@@ -14,6 +14,7 @@ import { PresetModal } from './components/PresetModal';
 import { MiniPlayer } from './components/MiniPlayer';
 import { VisualAtmosphere } from './components/VisualAtmosphere';
 import { EmptyState } from './components/EmptyState';
+import { DeveloperFooter } from './components/DeveloperFooter';
 
 export default function App() {
   // Theme state
@@ -163,6 +164,7 @@ export default function App() {
       {/* Visual Ambient Atmosphere Background Canvas */}
       <VisualAtmosphere
         themeId={currentTheme.id}
+        currentTheme={currentTheme}
         enabled={visualEffectsEnabled}
         activeCount={activeSoundsCount}
       />
@@ -265,6 +267,9 @@ export default function App() {
             </button>
           </div>
         )}
+
+        {/* Developer Attribution Footer */}
+        <DeveloperFooter currentTheme={currentTheme} />
       </main>
 
       {/* Presets Modal */}

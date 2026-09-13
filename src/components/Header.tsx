@@ -129,10 +129,19 @@ export const Header: React.FC<HeaderProps> = ({
               id="theme-selector-btn"
               onClick={() => setThemeDropdownOpen((prev) => !prev)}
               aria-expanded={themeDropdownOpen}
-              aria-label="Change color theme"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 transition-all cursor-pointer shadow-sm"
+              aria-label="Change atmospheric scenario"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 transition-all cursor-pointer shadow-sm"
             >
               <Palette className="w-3.5 h-3.5" style={{ color: currentTheme.primary }} />
+              <div className="hidden sm:flex items-center -space-x-1 mr-0.5">
+                {currentTheme.colorMix.slice(0, 3).map((hex, i) => (
+                  <span
+                    key={i}
+                    className="w-2.5 h-2.5 rounded-full border border-black/50 shadow-sm"
+                    style={{ backgroundColor: hex }}
+                  />
+                ))}
+              </div>
               <span className="hidden md:inline">{currentTheme.name}</span>
             </button>
 
@@ -144,38 +153,98 @@ export const Header: React.FC<HeaderProps> = ({
                 />
                 <div
                   id="theme-dropdown-menu"
-                  className="absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-2xl p-2 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-slate-900/98 border border-slate-700/90 shadow-2xl p-2.5 z-50 backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 max-h-[80vh] overflow-y-auto"
                 >
-                  <div className="px-2.5 py-1.5 text-xs font-medium text-slate-400 border-b border-slate-800/80 mb-1">
-                    Visual Themes
+                  <div className="px-2.5 py-2 border-b border-slate-800/80 mb-2 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-white tracking-tight">
+                        Atmospheric Scenarios
+                      </div>
+                      <div className="text-[11px] text-slate-400">
+                        Dynamic multi-color ambient soundscapes
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-white/10 text-slate-300">
+                      {themes.length} Scenarios
+                    </span>
                   </div>
-                  <div className="space-y-1">
-                    {themes.map((th) => (
-                      <button
-                        key={th.id}
-                        type="button"
-                        onClick={() => {
-                          onSelectTheme(th.id);
-                          setThemeDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
-                          th.id === currentTheme.id
-                            ? 'bg-white/10 text-white font-semibold'
-                            : 'text-slate-300 hover:text-white hover:bg-white/5'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-sm"
-                            style={{ backgroundColor: th.primary }}
-                          />
-                          <span>{th.name}</span>
-                        </div>
-                        {th.id === currentTheme.id && (
-                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: th.primary }} />
-                        )}
-                      </button>
-                    ))}
+
+                  <div className="space-y-1.5">
+                    {themes.map((th) => {
+                      const isSelected = th.id === currentTheme.id;
+                      return (
+                        <button
+                          key={th.id}
+                          type="button"
+                          id={`scenario-theme-${th.id}`}
+                          onClick={() => {
+                            onSelectTheme(th.id);
+                            setThemeDropdownOpen(false);
+                          }}
+                          className={`w-full flex flex-col gap-1.5 p-2.5 rounded-xl text-left text-xs transition-all cursor-pointer border ${
+                            isSelected
+                              ? 'bg-white/10 border-white/20 shadow-md ring-1'
+                              : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5 hover:border-slate-800'
+                          }`}
+                          style={
+                            isSelected
+                              ? {
+                                  borderColor: `${th.primary}66`,
+                                  boxShadow: `0 0 15px ${th.glow}`,
+                                }
+                              : undefined
+                          }
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-white text-xs sm:text-sm">
+                                {th.name}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/5 text-slate-400">
+                                {th.scenario}
+                              </span>
+                            </div>
+
+                            {isSelected && (
+                              <span
+                                className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md text-white shadow-sm"
+                                style={{ backgroundColor: th.primary }}
+                              >
+                                Active
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-1">
+                            {th.description}
+                          </p>
+
+                          {/* Mixture of Colors display */}
+                          <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              Color Mixture:
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {th.palette.map((color, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center gap-1 group/color"
+                                  title={`${color.name} (${color.hex})`}
+                                >
+                                  <span
+                                    className="w-3.5 h-3.5 rounded-full border border-black/40 shadow-sm transition-transform group-hover/color:scale-125"
+                                    style={{ backgroundColor: color.hex }}
+                                  />
+                                  <span className="hidden lg:inline text-[10px] text-slate-400 group-hover/color:text-slate-200">
+                                    {color.name}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </>

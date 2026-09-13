@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { ThemeId } from '../types';
+import { ThemeId, ThemeConfig } from '../types';
 
 interface VisualAtmosphereProps {
   themeId: ThemeId;
+  currentTheme?: ThemeConfig;
   enabled: boolean;
   activeCount: number;
 }
@@ -14,10 +15,31 @@ interface Particle {
   speedX: number;
   radius: number;
   alpha: number;
-  fadeSpeed: number;
+  colorRgb: { r: number; g: number; b: number };
 }
 
-export const VisualAtmosphere: React.FC<VisualAtmosphereProps> = ({ themeId, enabled, activeCount }) => {
+const hexToRgb = (hex: string) => {
+  const clean = hex.replace('#', '');
+  if (clean.length === 3) {
+    return {
+      r: parseInt(clean[0] + clean[0], 16) || 255,
+      g: parseInt(clean[1] + clean[1], 16) || 255,
+      b: parseInt(clean[2] + clean[2], 16) || 255,
+    };
+  }
+  return {
+    r: parseInt(clean.substring(0, 2), 16) || 255,
+    g: parseInt(clean.substring(2, 4), 16) || 255,
+    b: parseInt(clean.substring(4, 6), 16) || 255,
+  };
+};
+
+export const VisualAtmosphere: React.FC<VisualAtmosphereProps> = ({
+  themeId,
+  currentTheme,
+  enabled,
+  activeCount,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -41,36 +63,16 @@ export const VisualAtmosphere: React.FC<VisualAtmosphereProps> = ({ themeId, ena
 
     window.addEventListener('resize', handleResize);
 
+    // Multi-color palette for this scenario
+    const rawColors = currentTheme?.colorMix && currentTheme.colorMix.length > 0
+      ? currentTheme.colorMix
+      : ['#a855f7', '#38bdf8', '#ec4899', '#facc15'];
+
+    const rgbColors = rawColors.map(hexToRgb);
+
     // Generate lightweight ambient particles based on theme
-    const particleCount = Math.min(45, 12 + activeCount * 4);
+    const particleCount = Math.min(50, 15 + activeCount * 4);
     const particles: Particle[] = [];
-
-    const getThemeColor = () => {
-      switch (themeId) {
-        case 'midnight':
-          return { r: 168, g: 85, b: 247, secondary: { r: 56, g: 189, b: 248 } };
-        case 'ocean':
-          return { r: 6, g: 182, b: 212, secondary: { r: 56, g: 189, b: 248 } };
-        case 'forest':
-          return { r: 34, g: 197, b: 94, secondary: { r: 163, g: 230, b: 53 } };
-        case 'sunset':
-          return { r: 249, g: 115, b: 22, secondary: { r: 244, g: 63, b: 94 } };
-        case 'crimson':
-          return { r: 239, g: 68, b: 68, secondary: { r: 185, g: 28, b: 28 } };
-        case 'lavender':
-          return { r: 192, g: 132, b: 252, secondary: { r: 244, g: 114, b: 182 } };
-        case 'coffee':
-          return { r: 217, g: 119, b: 6, secondary: { r: 245, g: 158, b: 11 } };
-        case 'arctic':
-          return { r: 56, g: 189, b: 248, secondary: { r: 125, g: 211, b: 252 } };
-        case 'neon':
-          return { r: 236, g: 72, b: 153, secondary: { r: 6, g: 182, b: 212 } };
-        default:
-          return { r: 139, g: 92, b: 246, secondary: { r: 56, g: 189, b: 248 } };
-      }
-    };
-
-    const colorConfig = getThemeColor();
 
     for (let i = 0; i < particleCount; i++) {
       // Determine vertical velocity based on theme mood
@@ -85,14 +87,16 @@ export const VisualAtmosphere: React.FC<VisualAtmosphereProps> = ({ themeId, ena
         sY = 0.5 + Math.random() * 0.9; // Falling snow
       }
 
+      const assignedColor = rgbColors[i % rgbColors.length];
+
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
         speedY: sY,
         speedX: (Math.random() - 0.5) * 0.6,
         radius: 1.5 + Math.random() * 2.8,
-        alpha: 0.15 + Math.random() * 0.45,
-        fadeSpeed: 0.003 + Math.random() * 0.007,
+        alpha: 0.18 + Math.random() * 0.45,
+        colorRgb: assignedColor,
       });
     }
 
@@ -102,7 +106,11 @@ export const VisualAtmosphere: React.FC<VisualAtmosphereProps> = ({ themeId, ena
       ctx.clearRect(0, 0, width, height);
       time += 0.02;
 
-      // Soft ambient moving glow gradient in the center
+      // Soft ambient moving glow gradient mixing primary & secondary colors
+      const c1 = rgbColors[0] || { r: 168, g: 85, b: 247 };
+      const c2 = rgbColors[1] || { r: 56, g: 189, b: 248 };
+      const c3 = rgbColors[2] || { r: 236, g: 72, b: 153 };
+
       const gradient = ctx.createRadialGradient(
         width * 0.5 + Math.sin(time * 0.3) * 120,
         height * 0.35 + Math.cos(time * 0.25) * 100,
@@ -112,19 +120,20 @@ export const VisualAtmosphere: React.FC<VisualAtmosphereProps> = ({ themeId, ena
         Math.max(width, height) * 0.75
       );
 
-      gradient.addColorStop(0, `rgba(${colorConfig.r}, ${colorConfig.g}, ${colorConfig.b}, 0.12)`);
-      gradient.addColorStop(0.5, `rgba(${colorConfig.secondary.r}, ${colorConfig.secondary.g}, ${colorConfig.secondary.b}, 0.05)`);
+      gradient.addColorStop(0, `rgba(${c1.r}, ${c1.g}, ${c1.b}, 0.12)`);
+      gradient.addColorStop(0.45, `rgba(${c2.r}, ${c2.g}, ${c2.b}, 0.07)`);
+      gradient.addColorStop(0.75, `rgba(${c3.r}, ${c3.g}, ${c3.b}, 0.03)`);
       gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
-      // Render floating particles
+      // Render floating multi-color particles
       for (const p of particles) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${colorConfig.r}, ${colorConfig.g}, ${colorConfig.b}, ${p.alpha})`;
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = `rgba(${colorConfig.r}, ${colorConfig.g}, ${colorConfig.b}, 0.8)`;
+        ctx.fillStyle = `rgba(${p.colorRgb.r}, ${p.colorRgb.g}, ${p.colorRgb.b}, ${p.alpha})`;
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = `rgba(${p.colorRgb.r}, ${p.colorRgb.g}, ${p.colorRgb.b}, 0.8)`;
         ctx.fill();
 
         p.y += p.speedY;
@@ -146,7 +155,7 @@ export const VisualAtmosphere: React.FC<VisualAtmosphereProps> = ({ themeId, ena
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [themeId, enabled, activeCount]);
+  }, [themeId, currentTheme, enabled, activeCount]);
 
   if (!enabled || activeCount === 0) return null;
 
