@@ -166,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               id="header-buy-coffee-btn"
               onClick={onOpenBuyCoffee}
-              title="Buy me a coffee — Razorpay & Instant UPI (paytoarchu@ybl)"
+              title="Buy me a coffee — Instant UPI (paytoarchu@ybl)"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 hover:text-white bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 hover:border-amber-400/80 transition-all cursor-pointer shadow-sm shadow-amber-950/30"
             >
               <Coffee className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />

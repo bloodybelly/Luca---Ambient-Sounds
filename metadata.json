@@ -2,6 +2,7 @@
   "name": "Luca Ambience",
   "description": "An interactive ambient sound mixer and atmosphere builder to craft your perfect acoustic environment.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
-
