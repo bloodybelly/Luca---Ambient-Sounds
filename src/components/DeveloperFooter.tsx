@@ -1,12 +1,16 @@
 import React from 'react';
-import { Linkedin, ExternalLink, Sparkles, Heart, ArrowUp, Music2 } from 'lucide-react';
+import { Linkedin, ExternalLink, Sparkles, Heart, ArrowUp, Music2, Coffee } from 'lucide-react';
 import { ThemeConfig } from '../types';
 
 interface DeveloperFooterProps {
   currentTheme: ThemeConfig;
+  onOpenBuyCoffee?: () => void;
 }
 
-export const DeveloperFooter: React.FC<DeveloperFooterProps> = ({ currentTheme }) => {
+export const DeveloperFooter: React.FC<DeveloperFooterProps> = ({
+  currentTheme,
+  onOpenBuyCoffee,
+}) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -54,13 +58,26 @@ export const DeveloperFooter: React.FC<DeveloperFooterProps> = ({ currentTheme }
               Archana Raj
             </h3>
             <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-              <span>Full-Stack & Ambient Audio Systems Engineer</span>
+              <span>A CSE Undergrad trying to make your lives easier</span>
             </p>
           </div>
         </div>
 
         {/* Links & Actions */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* Buy Me a Coffee Button */}
+          {onOpenBuyCoffee && (
+            <button
+              type="button"
+              id="footer-buy-coffee-btn"
+              onClick={onOpenBuyCoffee}
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-950 transition-all duration-200 shadow-md hover:scale-[1.03] active:scale-[0.98] cursor-pointer group bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 shadow-amber-500/20"
+            >
+              <Coffee className="w-4 h-4 fill-slate-950 text-slate-950" />
+              <span>Buy Me a Coffee</span>
+            </button>
+          )}
+
           {/* LinkedIn Button */}
           <a
             id="developer-linkedin-link"

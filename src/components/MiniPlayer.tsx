@@ -7,6 +7,7 @@ import {
   Pause,
   RotateCcw,
   Sliders,
+  Download,
 } from 'lucide-react';
 import { SoundItem, SoundState } from '../types';
 import { SOUND_LIBRARY } from '../data/sounds';
@@ -23,6 +24,7 @@ interface MiniPlayerProps {
   onVolumeChange: (id: string, volume: number) => void;
   onTogglePlay: (id: string) => void;
   onResetAll: () => void;
+  onOpenDownloadMix?: () => void;
   accentColor: string;
 }
 
@@ -37,6 +39,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
   onVolumeChange,
   onTogglePlay,
   onResetAll,
+  onOpenDownloadMix,
   accentColor,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -57,14 +60,27 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
                 <Sliders className="w-3.5 h-3.5" style={{ color: accentColor }} />
                 <span>Active Sound Levels</span>
               </span>
-              <button
-                type="button"
-                id="mini-player-silence-all-btn"
-                onClick={onResetAll}
-                className="text-[11px] text-red-400 hover:text-red-300 font-medium"
-              >
-                Silence All
-              </button>
+              <div className="flex items-center gap-2">
+                {onOpenDownloadMix && (
+                  <button
+                    type="button"
+                    id="mini-player-download-btn"
+                    onClick={onOpenDownloadMix}
+                    className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Download</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  id="mini-player-silence-all-btn"
+                  onClick={onResetAll}
+                  className="text-[11px] text-red-400 hover:text-red-300 font-medium cursor-pointer"
+                >
+                  Silence All
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2.5">
@@ -145,6 +161,20 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
             <span className="text-xs font-mono font-semibold text-slate-300 tabular-nums">
               {masterMuted ? '0%' : `${masterVolume}%`}
             </span>
+
+            {/* Quick Download Mix Button */}
+            {onOpenDownloadMix && (
+              <button
+                type="button"
+                id="mini-player-bar-download-btn"
+                onClick={onOpenDownloadMix}
+                title="Download this mix (.wav or preset)"
+                aria-label="Download mix"
+                className="p-1.5 rounded-lg text-sky-400 hover:text-sky-300 hover:bg-sky-500/15 transition-colors cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            )}
 
             {/* Quick Silence All Button */}
             <button

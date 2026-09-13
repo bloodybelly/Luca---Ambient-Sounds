@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, Shuffle, RotateCcw, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Shuffle, RotateCcw, SlidersHorizontal, Sparkles, Download } from 'lucide-react';
 import { VolumeSlider } from './VolumeSlider';
 import { ThemeConfig } from '../types';
 
@@ -11,6 +11,7 @@ interface MasterMixerProps {
   onToggleMasterMute: () => void;
   onResetAll: () => void;
   onRandomize: () => void;
+  onOpenDownloadMix?: () => void;
   accentColor: string;
   currentTheme?: ThemeConfig;
 }
@@ -23,6 +24,7 @@ export const MasterMixer: React.FC<MasterMixerProps> = ({
   onToggleMasterMute,
   onResetAll,
   onRandomize,
+  onOpenDownloadMix,
   accentColor,
   currentTheme,
 }) => {
@@ -81,6 +83,33 @@ export const MasterMixer: React.FC<MasterMixerProps> = ({
             <Shuffle className="w-3.5 h-3.5" />
             <span>Surprise Me</span>
           </button>
+
+          {/* Download Mix Button */}
+          {onOpenDownloadMix && (
+            <button
+              type="button"
+              id="download-mix-btn"
+              onClick={onOpenDownloadMix}
+              disabled={activeCount === 0}
+              title={activeCount > 0 ? 'Download your active soundscape as an audio file or preset' : 'Turn on sounds to download your mix'}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border transition-all cursor-pointer shadow-sm ${
+                activeCount > 0
+                  ? 'text-white bg-slate-800/90 hover:bg-slate-750 border-slate-600/80 hover:border-slate-500 hover:scale-[1.02] active:scale-[0.98]'
+                  : 'text-slate-600 bg-slate-900/40 border-slate-800/40 opacity-40 cursor-not-allowed'
+              }`}
+              style={
+                activeCount > 0
+                  ? {
+                      borderColor: `${accentColor}70`,
+                      boxShadow: `0 0 12px ${accentColor}25`,
+                    }
+                  : undefined
+              }
+            >
+              <Download className="w-3.5 h-3.5 text-sky-400" />
+              <span>Download Mix</span>
+            </button>
+          )}
 
           {/* Reset Mixer Button */}
           <button

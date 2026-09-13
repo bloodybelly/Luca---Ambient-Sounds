@@ -30,6 +30,13 @@ export class SoundEngine {
   private isMasterMuted: boolean = false;
   private masterVolume: number = 0.8; // 0 to 1
 
+  // Mix Recording properties
+  private recorder: MediaRecorder | null = null;
+  private recorderDest: MediaStreamAudioDestinationNode | null = null;
+  private recordChunks: BlobPart[] = [];
+  private recordTimerId: number | null = null;
+  private isCurrentlyRecording: boolean = false;
+
   private constructor() {}
 
   public static getInstance(): SoundEngine {
@@ -157,11 +164,30 @@ export class SoundEngine {
       const isAbsolute = audioPath.startsWith('http://') || audioPath.startsWith('https://');
       audio.src = isAbsolute ? audioPath : PRIMARY_CDN + audioPath;
 
+      // Connect to Web Audio masterGain so all audio flows through the master mixer and can be recorded
+      let connectedToWebAudio = false;
+      try {
+        const ctx = this.initContext();
+        const mediaSource = ctx.createMediaElementSource(audio);
+        const voiceGain = ctx.createGain();
+        voiceGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        voiceGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, targetVol), ctx.currentTime + 0.15);
+        mediaSource.connect(voiceGain);
+        voiceGain.connect(this.masterGain!);
+        voice.gainNode = voiceGain;
+        voice.nodes = [mediaSource, voiceGain];
+        connectedToWebAudio = true;
+      } catch (err) {
+        console.warn(`[SoundEngine] Web Audio media element connection deferred for ${id}:`, err);
+      }
+
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            this.fadeInAudio(audio, targetVol);
+            if (!connectedToWebAudio) {
+              this.fadeInAudio(audio, targetVol);
+            }
           })
           .catch((err) => {
             console.warn(`[SoundEngine] Audio play interrupted for ${id}:`, err);
@@ -323,6 +349,120 @@ export class SoundEngine {
   public stopAll(): void {
     const keys = Array.from(this.voices.keys());
     keys.forEach((id) => this.stopSound(id));
+  }
+
+  // --- MIX RECORDING & AUDIO EXPORT CAPABILITIES ---
+
+  public getAudioContext(): AudioContext {
+    return this.initContext();
+  }
+
+  public isRecordingActive(): boolean {
+    return this.isCurrentlyRecording;
+  }
+
+  public startRecording(onProgress?: (seconds: number) => void): boolean {
+    if (this.isCurrentlyRecording) return false;
+
+    try {
+      const ctx = this.initContext();
+      if (!this.masterGain) return false;
+
+      this.recorderDest = ctx.createMediaStreamDestination();
+      this.masterGain.connect(this.recorderDest);
+
+      let mimeType = '';
+      if (typeof MediaRecorder !== 'undefined') {
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+          mimeType = 'audio/webm';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+          mimeType = 'audio/ogg';
+        }
+      }
+
+      const options = mimeType ? { mimeType } : undefined;
+      this.recorder = new MediaRecorder(this.recorderDest.stream, options);
+      this.recordChunks = [];
+
+      this.recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          this.recordChunks.push(event.data);
+        }
+      };
+
+      this.recorder.start(250);
+      this.isCurrentlyRecording = true;
+
+      let elapsed = 0;
+      if (onProgress) {
+        onProgress(0);
+        this.recordTimerId = window.setInterval(() => {
+          elapsed += 1;
+          onProgress(elapsed);
+        }, 1000);
+      }
+
+      return true;
+    } catch (err) {
+      console.error('[SoundEngine] Failed to initialize recorder:', err);
+      this.cleanupRecording();
+      return false;
+    }
+  }
+
+  public stopRecording(): Promise<Blob | null> {
+    return new Promise((resolve) => {
+      if (!this.isCurrentlyRecording || !this.recorder) {
+        this.cleanupRecording();
+        resolve(null);
+        return;
+      }
+
+      const recorder = this.recorder;
+      const mimeType = recorder.mimeType || 'audio/webm';
+
+      recorder.onstop = () => {
+        const rawBlob = new Blob(this.recordChunks, { type: mimeType });
+        this.cleanupRecording();
+        resolve(rawBlob);
+      };
+
+      try {
+        if (recorder.state !== 'inactive') {
+          recorder.stop();
+        } else {
+          const rawBlob = new Blob(this.recordChunks, { type: mimeType });
+          this.cleanupRecording();
+          resolve(rawBlob);
+        }
+      } catch (e) {
+        console.error('[SoundEngine] Error stopping recorder:', e);
+        this.cleanupRecording();
+        resolve(null);
+      }
+    });
+  }
+
+  private cleanupRecording(): void {
+    if (this.recordTimerId) {
+      window.clearInterval(this.recordTimerId);
+      this.recordTimerId = null;
+    }
+    if (this.recorderDest && this.masterGain) {
+      try {
+        this.masterGain.disconnect(this.recorderDest);
+      } catch {
+        // ignore
+      }
+      this.recorderDest = null;
+    }
+    this.recorder = null;
+    this.recordChunks = [];
+    this.isCurrentlyRecording = false;
   }
 
   private calculateEffectiveVolume(baseVolume: number, muted: boolean): number {

@@ -234,6 +234,37 @@ export function useAudioMixer() {
     }
   }, [soundStates]);
 
+  // Apply an imported mix recipe
+  const applyCustomMix = useCallback((soundMix: { id: string; volume: number }[]) => {
+    const engine = engineRef.current || SoundEngine.getInstance();
+    engine.stopAll();
+
+    setSoundStates((prev) => {
+      const next: Record<string, SoundState> = {};
+      Object.keys(prev).forEach((id) => {
+        next[id] = {
+          ...prev[id],
+          playing: false,
+        };
+      });
+
+      soundMix.forEach((item) => {
+        const soundItem = SOUND_LIBRARY.find((s) => s.id === item.id);
+        if (soundItem) {
+          const vol = Math.max(0, Math.min(100, item.volume));
+          next[item.id] = {
+            playing: true,
+            volume: vol,
+            muted: false,
+          };
+          engine.startSound(item.id, soundItem.audioPath, vol, soundItem.generatorType);
+        }
+      });
+
+      return next;
+    });
+  }, []);
+
   // Derived states
   const activeSoundIds = (Object.entries(soundStates) as [string, SoundState][])
     .filter(([, state]) => state.playing)
@@ -258,5 +289,6 @@ export function useAudioMixer() {
     loadPreset,
     randomizeSounds,
     togglePlayAll,
+    applyCustomMix,
   };
 }

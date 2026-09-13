@@ -8,6 +8,8 @@ import {
   EyeOff,
   Radio,
   Sliders,
+  Download,
+  Coffee,
 } from 'lucide-react';
 import { ThemeConfig, ThemeId } from '../types';
 
@@ -18,6 +20,8 @@ interface HeaderProps {
   activeCount: number;
   onResetAll: () => void;
   onOpenPresets: () => void;
+  onOpenDownloadMix?: () => void;
+  onOpenBuyCoffee?: () => void;
   visualEffectsEnabled: boolean;
   onToggleVisualEffects: () => void;
   onOpenQuickMixer?: () => void;
@@ -30,6 +34,8 @@ export const Header: React.FC<HeaderProps> = ({
   activeCount,
   onResetAll,
   onOpenPresets,
+  onOpenDownloadMix,
+  onOpenBuyCoffee,
   visualEffectsEnabled,
   onToggleVisualEffects,
 }) => {
@@ -40,10 +46,23 @@ export const Header: React.FC<HeaderProps> = ({
       id="app-header"
       className="sticky top-0 z-30 w-full backdrop-blur-md border-b transition-colors duration-300"
       style={{
-        backgroundColor: `${currentTheme.background}e6`,
+        backgroundColor: `${currentTheme.background}f0`,
         borderColor: `${currentTheme.border}80`,
       }}
     >
+      {/* Top Bold Action Banner */}
+      <div
+        id="top-action-banner"
+        className="w-full border-b border-white/10 py-1 px-4 text-center flex items-center justify-center gap-2 relative overflow-hidden"
+        style={{
+          background: `linear-gradient(90deg, ${currentTheme.primary}15, ${currentTheme.accent}25, ${currentTheme.primary}15)`,
+        }}
+      >
+        <span className="text-[11px] sm:text-xs md:text-sm font-black tracking-widest text-white uppercase select-none drop-shadow-sm flex items-center gap-2">
+          <span>MIX - CREATE - DOWNLOAD</span>
+        </span>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
         {/* Brand Logo & Name */}
         <div className="flex items-center gap-3">
@@ -121,6 +140,39 @@ export const Header: React.FC<HeaderProps> = ({
             <BookmarkCheck className="w-3.5 h-3.5" style={{ color: currentTheme.primary }} />
             <span className="hidden sm:inline">Presets</span>
           </button>
+
+          {/* Download Mix Button */}
+          {onOpenDownloadMix && (
+            <button
+              type="button"
+              id="header-download-mix-btn"
+              onClick={onOpenDownloadMix}
+              disabled={activeCount === 0}
+              title={activeCount > 0 ? 'Download active atmosphere mix (.mp3, .wav, .webm, or preset)' : 'Turn on sounds to download mix'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer shadow-sm ${
+                activeCount > 0
+                  ? 'text-sky-300 hover:text-white bg-slate-800/80 hover:bg-slate-750 border-sky-500/40 hover:border-sky-400/80 shadow-sky-900/20'
+                  : 'text-slate-600 border-slate-800/40 opacity-40 cursor-not-allowed'
+              }`}
+            >
+              <Download className="w-3.5 h-3.5 text-sky-400" />
+              <span className="hidden sm:inline">Download Mix</span>
+            </button>
+          )}
+
+          {/* Buy Me a Coffee Button */}
+          {onOpenBuyCoffee && (
+            <button
+              type="button"
+              id="header-buy-coffee-btn"
+              onClick={onOpenBuyCoffee}
+              title="Buy me a coffee — Razorpay & Instant UPI (paytoarchu@ybl)"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 hover:text-white bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 hover:border-amber-400/80 transition-all cursor-pointer shadow-sm shadow-amber-950/30"
+            >
+              <Coffee className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
+              <span className="hidden xs:inline">Buy Coffee</span>
+            </button>
+          )}
 
           {/* Theme Selector Dropdown */}
           <div className="relative">

@@ -15,6 +15,8 @@ import { MiniPlayer } from './components/MiniPlayer';
 import { VisualAtmosphere } from './components/VisualAtmosphere';
 import { EmptyState } from './components/EmptyState';
 import { DeveloperFooter } from './components/DeveloperFooter';
+import { DownloadMixModal } from './components/DownloadMixModal';
+import { BuyCoffeeModal } from './components/BuyCoffeeModal';
 
 export default function App() {
   // Theme state
@@ -45,6 +47,8 @@ export default function App() {
 
   // Modals
   const [presetModalOpen, setPresetModalOpen] = useState<boolean>(false);
+  const [downloadMixModalOpen, setDownloadMixModalOpen] = useState<boolean>(false);
+  const [buyCoffeeModalOpen, setBuyCoffeeModalOpen] = useState<boolean>(false);
 
   // Audio Mixer Engine
   const {
@@ -61,6 +65,7 @@ export default function App() {
     resetAll,
     loadPreset,
     randomizeSounds,
+    applyCustomMix,
   } = useAudioMixer();
 
   // Toggle favorite
@@ -177,6 +182,8 @@ export default function App() {
         activeCount={activeSoundsCount}
         onResetAll={resetAll}
         onOpenPresets={() => setPresetModalOpen(true)}
+        onOpenDownloadMix={() => setDownloadMixModalOpen(true)}
+        onOpenBuyCoffee={() => setBuyCoffeeModalOpen(true)}
         visualEffectsEnabled={visualEffectsEnabled}
         onToggleVisualEffects={() => setVisualEffectsEnabled(!visualEffectsEnabled)}
       />
@@ -192,6 +199,7 @@ export default function App() {
           onToggleMasterMute={toggleMasterMute}
           onResetAll={resetAll}
           onRandomize={randomizeSounds}
+          onOpenDownloadMix={() => setDownloadMixModalOpen(true)}
           accentColor={currentTheme.primary}
           currentTheme={currentTheme}
         />
@@ -269,7 +277,10 @@ export default function App() {
         )}
 
         {/* Developer Attribution Footer */}
-        <DeveloperFooter currentTheme={currentTheme} />
+        <DeveloperFooter
+          currentTheme={currentTheme}
+          onOpenBuyCoffee={() => setBuyCoffeeModalOpen(true)}
+        />
       </main>
 
       {/* Presets Modal */}
@@ -296,7 +307,26 @@ export default function App() {
         onVolumeChange={setSoundVolume}
         onTogglePlay={toggleSound}
         onResetAll={resetAll}
+        onOpenDownloadMix={() => setDownloadMixModalOpen(true)}
         accentColor={currentTheme.primary}
+      />
+
+      {/* Download Mix Modal */}
+      <DownloadMixModal
+        isOpen={downloadMixModalOpen}
+        onClose={() => setDownloadMixModalOpen(false)}
+        soundStates={soundStates}
+        masterVolume={masterVolume}
+        currentTheme={currentTheme}
+        onApplyCustomMix={applyCustomMix}
+        onSelectTheme={setSelectedThemeId}
+      />
+
+      {/* Buy Me a Coffee Modal (Razorpay + Direct UPI 9994419119@ybl) */}
+      <BuyCoffeeModal
+        isOpen={buyCoffeeModalOpen}
+        onClose={() => setBuyCoffeeModalOpen(false)}
+        currentTheme={currentTheme}
       />
     </div>
   );
